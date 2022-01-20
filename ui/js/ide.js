@@ -1,4 +1,4 @@
-var defaultUrl = localStorageGetItem("api-url") || "https://ce.judge0.com";
+var defaultUrl = "https://o5brsfw8jd.execute-api.us-east-2.amazonaws.com/prod/";
 var apiUrl = defaultUrl;
 var wait = localStorageGetItem("wait") || false;
 var check_timeout = 300;
@@ -141,8 +141,7 @@ function localStorageGetItem(key) {
 }
 
 function showMessages() {
-    var width = $updates.offset().left - parseFloat($updates.css("padding-left")) -
-                $navigationMessage.parent().offset().left - parseFloat($navigationMessage.parent().css("padding-left")) - 5;
+    var width = $updates.offset().left - parseFloat($updates.css("padding-left")) - 5;
 
     if (width < 200 || messagesData === undefined) {
         return;
@@ -198,10 +197,9 @@ function handleResult(data) {
     console.log("It took " + (timeEnd - timeStart) + " ms to get submission result.");
 
     var status = data.status;
-    var stdout = decode(data.stdout);
-    var stderr = decode(data.stderr);
-    var compile_output = decode(data.compile_output);
-    var sandbox_message = decode(data.message);
+    var stdout = data.stdout;
+    var stderr = data.stderr;
+
     var time = (data.time === null ? "-" : data.time + "s");
     var memory = (data.memory === null ? "-" : data.memory + "KB");
 
@@ -218,8 +216,6 @@ function handleResult(data) {
 
     stdoutEditor.setValue(stdout);
     stderrEditor.setValue(stderr);
-    compileOutputEditor.setValue(compile_output);
-    sandboxMessageEditor.setValue(sandbox_message);
 
     if (stdout !== "") {
         var dot = document.getElementById("stdout-dot");
@@ -229,18 +225,6 @@ function handleResult(data) {
     }
     if (stderr !== "") {
         var dot = document.getElementById("stderr-dot");
-        if (!dot.parentElement.classList.contains("lm_active")) {
-            dot.hidden = false;
-        }
-    }
-    if (compile_output !== "") {
-        var dot = document.getElementById("compile-output-dot");
-        if (!dot.parentElement.classList.contains("lm_active")) {
-            dot.hidden = false;
-        }
-    }
-    if (sandbox_message !== "") {
-        var dot = document.getElementById("sandbox-message-dot");
         if (!dot.parentElement.classList.contains("lm_active")) {
             dot.hidden = false;
         }
@@ -298,81 +282,35 @@ function run() {
 
     document.getElementById("stdout-dot").hidden = true;
     document.getElementById("stderr-dot").hidden = true;
-    document.getElementById("compile-output-dot").hidden = true;
-    document.getElementById("sandbox-message-dot").hidden = true;
 
     stdoutEditor.setValue("");
     stderrEditor.setValue("");
-    compileOutputEditor.setValue("");
-    sandboxMessageEditor.setValue("");
 
-    var sourceValue = encode(sourceEditor.getValue());
-    var stdinValue = encode(stdinEditor.getValue());
+    var sourceValue = sourceEditor.getValue();
+    var stdinValue = stdinEditor.getValue();
     var languageId = resolveLanguageId($selectLanguage.val());
-    var compilerOptions = $compilerOptions.val();
-    var commandLineArguments = $commandLineArguments.val();
-
-    if (parseInt(languageId) === 44) {
-        sourceValue = sourceEditor.getValue();
-    }
 
     var data = {
         source_code: sourceValue,
         language_id: languageId,
         stdin: stdinValue,
-        compiler_options: compilerOptions,
-        command_line_arguments: commandLineArguments,
-        redirect_stderr_to_stdout: redirectStderrToStdout
     };
 
     var sendRequest = function(data) {
         timeStart = performance.now();
         $.ajax({
-            url: apiUrl + `/submissions?base64_encoded=true&wait=${wait}`,
+            url: apiUrl + `/neutrino-python-3_8`,
             type: "POST",
-            async: true,
             contentType: "application/json",
+            dataType: 'json',
             data: JSON.stringify(data),
-            xhrFields: {
-                withCredentials: apiUrl.indexOf("/secure") != -1 ? true : false
-            },
-            success: function (data, textStatus, jqXHR) {
-                console.log(`Your submission token is: ${data.token}`);
-                if (wait == true) {
-                    handleResult(data);
-                } else {
-                    setTimeout(fetchSubmission.bind(null, data.token), check_timeout);
-                }
+            success: function (data) {
+                handleResult(data);
             },
             error: handleRunError
         });
     }
-
-    var fetchAdditionalFiles = false;
-    if (parseInt(languageId) === 82) {
-        if (sqliteAdditionalFiles === "") {
-            fetchAdditionalFiles = true;
-            $.ajax({
-                url: `https://minio.judge0.com/public/ide/sqliteAdditionalFiles.base64.txt?${Date.now()}`,
-                type: "GET",
-                async: true,
-                contentType: "text/plain",
-                success: function (responseData, textStatus, jqXHR) {
-                    sqliteAdditionalFiles = responseData;
-                    data["additional_files"] = sqliteAdditionalFiles;
-                    sendRequest(data);
-                },
-                error: handleRunError
-            });
-        }
-        else {
-            data["additional_files"] = sqliteAdditionalFiles;
-        }
-    }
-
-    if (!fetchAdditionalFiles) {
-        sendRequest(data);
-    }
+    sendRequest(data);
 }
 
 function fetchSubmission(submission_token) {
@@ -484,8 +422,6 @@ $(window).resize(function() {
 $(document).ready(function () {
     updateScreenElements();
 
-    console.log("Hey, Judge0 IDE is open-sourced: https://github.com/judge0/ide. Have fun!");
-
     $selectLanguage = $("#select-language");
     $selectLanguage.change(function (e) {
         if (!isEditorDirty) {
@@ -494,10 +430,6 @@ $(document).ready(function () {
             changeEditorLanguage();
         }
     });
-
-    $compilerOptions = $("#compiler-options");
-    $commandLineArguments = $("#command-line-arguments");
-    $commandLineArguments.attr("size", $commandLineArguments.attr("placeholder").length);
 
     $insertTemplateBtn = $("#insert-template-btn");
     $insertTemplateBtn.click(function (e) {
