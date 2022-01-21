@@ -39,17 +39,18 @@ class RegisterEvent(WSEvent):
 
 
 class WSHandler:
-    def __init__(self, connection_id: str):
+    def __init__(self, connection_id: str, sender):
         self.connection_id = connection_id
+        self.sender = sender
 
     def connect(self):
         pass
 
     def message(self, message: str):
         event = WSEvent.from_message(message)
-        if event == WSEventType.REGISTER:
+        if event.type == WSEventType.REGISTER:
             self.register(RegisterEvent(event))
-        elif event == WSEventType.TEST:
+        elif event.type == WSEventType.TEST:
             self.test(TestEvent(event))
         else:
             _logger.warning(f"Unknown event type: {message}")
@@ -59,7 +60,7 @@ class WSHandler:
         pass
 
     def test(self, event: TestEvent):
-        ws_sender.WSSender(self.connection_id).send_message(ws_sender.TestWSReply(event.message))
+        self.sender.send_message(self.connection_id, ws_sender.TestWSReply(event.message))
 
     def disconnect(self):
         # remove session id for connection id in DDB

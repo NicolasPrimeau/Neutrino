@@ -2,3 +2,4 @@ chalice
 boto3
 websocket-client
 pytest
+pytest-asyncio
