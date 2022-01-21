@@ -4,3 +4,4 @@ venv
 .idea/
 build
 .pytest_cache
+.chalice/deployments/

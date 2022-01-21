@@ -1,0 +1,4 @@
+chalice
+boto3
+websocket-client
+pytest

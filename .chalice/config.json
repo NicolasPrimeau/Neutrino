@@ -1,0 +1,11 @@
+{
+  "version": "2.0",
+  "app_name": "neutrino-ws",
+  "stages": {
+    "prod": {
+      "api_gateway_stage": "api",
+      "manage_iam_role": false,
+      "iam_role_arn": "arn:aws:iam::357603364432:role/Neutrino-Lambda-Runner"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "resources": [
+    {
+      "name": "websocket_connect",
+      "resource_type": "lambda_function",
+      "lambda_arn": "arn:aws:lambda:us-east-2:357603364432:function:neutrino-ws-prod-websocket_connect"
+    },
+    {
+      "name": "websocket_message",
+      "resource_type": "lambda_function",
+      "lambda_arn": "arn:aws:lambda:us-east-2:357603364432:function:neutrino-ws-prod-websocket_message"
+    },
+    {
+      "name": "websocket_disconnect",
+      "resource_type": "lambda_function",
+      "lambda_arn": "arn:aws:lambda:us-east-2:357603364432:function:neutrino-ws-prod-websocket_disconnect"
+    },
+    {
+      "name": "websocket_api",
+      "resource_type": "websocket_api",
+      "websocket_api_url": "wss://dds81j87ij.execute-api.us-east-2.amazonaws.com/api/",
+      "websocket_api_id": "dds81j87ij"
+    }
+  ],
+  "schema_version": "2.0",
+  "backend": "api"
+}
