@@ -66,23 +66,28 @@
                 File <i class="dropdown icon"></i>
                 <div class="menu">
                     <a class="item" target="_blank" href="/"><i class="file code icon"></i> New File</a>
+                    <div class="item" onclick="clearSource()"><i class="file code icon"></i> Clear</div>
                     <div class="item" onclick="downloadSource()"><i class="download icon"></i> Download</div>
-                    <div id="insert-template-btn" class="item"><i class="file code outline icon"></i> Insert template
-                        for current language</div>
                 </div>
             </div>
-            <div class="link item" onclick="$('#site-settings').modal('show')"><i class="cog icon"></i> Settings</div>
             <div class="item borderless">
                 <select id="select-language" class="ui dropdown">
-                    <option value="71" mode="python">Python (3.8.1)</option>
+                    <option value="1" mode="python">Python (3.8.1)</option>
                 </select>
             </div>
             <div class="item no-left-padding borderless">
-                <button id="run-btn" class="ui primary labeled icon button"><i class="play icon"></i>Run (F9)</button>
+                <button id="run-btn" class="ui primary labeled icon button">
+                    <i class="play icon"></i>Run (F9)
+                </button>
+            </div>
+            <div class="item no-left-padding borderless">
+                <button id="session-btn" class="ui primary labeled icon button">
+                    <i class="play icon"></i>New Session
+                </button>
             </div>
         </div>
         <div class="right menu">
-            <div id="judge0-more" class="ui dropdown item site-links">
+            <div id="neutrino-more" class="ui dropdown item site-links">
             </div>
         </div>
     </div>
@@ -101,56 +106,6 @@
                 Close (ESC)
             </div>
         </div>
-    </div>
-
-    <div id="site-settings" class="ui modal">
-        <i class="close icon"></i>
-        <div class="header">
-            <i class="cog icon"></i>
-            Settings
-        </div>
-        <div class="content">
-            <div class="ui form">
-                <div class="inline fields">
-                    <label>Editor Mode</label>
-                    <div class="field">
-                        <div class="ui radio checkbox">
-                            <input type="radio" name="editor-mode" value="normal" checked="checked">
-                            <label>Normal</label>
-                        </div>
-                    </div>
-                    <div class="field">
-                        <div class="ui radio checkbox">
-                            <input type="radio" name="editor-mode" value="vim">
-                            <label>Vim</label>
-                        </div>
-                    </div>
-                    <div class="field">
-                        <div class="ui radio checkbox">
-                            <input type="radio" name="editor-mode" value="emacs">
-                            <label>Emacs</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="inline field">
-                    <div class="ui checkbox">
-                        <input type="checkbox" name="redirect-output">
-                        <label>Redirect stderr to stdout</label>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="site-footer">
-        <span id="donate-line">
-            <a class="item" target="_blank" href="https://www.patreon.com/hermanzdosilovic"><i class="patreon icon" style="color: #f06553;"></i> Become a Patron</a>
-            ·
-            <a class="item" target="_blank" href="https://paypal.me/hermanzdosilovic"><i class="paypal icon" style="color: #00457c;"></i></i> Donate with PayPal</a>
-        </span>
-        <div id="editor-status-line"></div>
-        <span>© 2016-2021 <a href="https://judge0.com?ref=ide">Judge0</a> · Powered by <a href="https://judge0.com?ref=ide">Judge0</a>
-        <span id="status-line"></span>
     </div>
 </body>
 
