@@ -7,6 +7,7 @@ from chalice import WebsocketDisconnectedError
 
 class WSReplyType(str, Enum):
     TEXT = "text"
+    SOURCE_UPDATE = "SOURCE_UPDATE"
 
     def __str__(self):
         return self.value
@@ -50,6 +51,20 @@ class TestWSReply(WSReply):
     @message.setter
     def message(self, message: str):
         self.data["message"] = message
+
+
+class SourceUpdateReply(WSReply):
+    def __init__(self, text: str):
+        super().__init__(WSReplyType.SOURCE_UPDATE)
+        self.text = text
+
+    @property
+    def text(self) -> str:
+        return self.data["text"]
+
+    @text.setter
+    def text(self, text: str):
+        self.data["text"] = text
 
 
 class WSSender:

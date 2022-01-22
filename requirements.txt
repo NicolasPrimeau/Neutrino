@@ -1,5 +1,6 @@
 chalice
 boto3
+botocore
 websocket-client
 pytest
 pytest-asyncio

@@ -2,13 +2,15 @@ import json
 import logging
 from enum import Enum
 
-from chalicelib import ws_sender
+from chalicelib import ws_sender, ws_store
 
 _logger = logging.getLogger()
 
 
 class WSEventType(str, Enum):
     REGISTER = "register"
+    DEREGISTER = "deregister"
+    SOURCE_BROADCAST = "source_broadcast"
     TEST = "test"
 
     def __str__(self):
@@ -20,6 +22,10 @@ class WSEvent(dict):
     def type(self) -> WSEventType:
         event_str = self.get("type")
         return WSEventType(event_str) if event_str else None
+
+    @property
+    def session_id(self) -> str:
+        return self.get["sessionId"]
 
     @classmethod
     def from_message(cls, data: str) -> "WSEvent":
@@ -33,9 +39,17 @@ class TestEvent(WSEvent):
 
 
 class RegisterEvent(WSEvent):
+    pass
+
+
+class DeregisterEvent(WSEvent):
+    pass
+
+
+class SourceBroadcastEvent(WSEvent):
     @property
-    def session_id(self) -> str:
-        return self.get("data", {}).get("session_id")
+    def source_code(self) -> str:
+        return self.get("data", {}).get("source_code")
 
 
 class WSHandler:
@@ -50,18 +64,28 @@ class WSHandler:
         event = WSEvent.from_message(message)
         if event.type == WSEventType.REGISTER:
             self.register(RegisterEvent(event))
+        elif event.type == WSEventType.DEREGISTER:
+            self.deregister(DeregisterEvent(event))
+        elif event.type == WSEventType.SOURCE_BROADCAST:
+            self.broadcast(SourceBroadcastEvent(event))
         elif event.type == WSEventType.TEST:
             self.test(TestEvent(event))
         else:
             _logger.warning(f"Unknown event type: {message}")
 
     def register(self, event: RegisterEvent):
-        # set session id for connection id in DDB
-        pass
+        ws_store.insert_new_connection(event.session_id, self.connection_id)
+
+    def deregister(self, event: DeregisterEvent):
+        ws_store.remove_connection(event.session_id, self.connection_id)
+
+    def broadcast(self, event: SourceBroadcastEvent):
+        for connection_id in ws_store.get_connection_ids_for_session(event.session_id):
+            if connection_id != self.connection_id:
+                self.sender.send_message(connection_id, ws_sender.SourceUpdateReply(event.source_code))
 
     def test(self, event: TestEvent):
         self.sender.send_message(self.connection_id, ws_sender.TestWSReply(event.message))
 
     def disconnect(self):
-        # remove session id for connection id in DDB
         pass

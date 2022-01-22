@@ -316,14 +316,16 @@ var ws = null;
 if (sessionId) {
     ws = new WebSocket(wsUrl);
     ws.onopen = function() {
-        // pop up" Connected!
+        sendRegisterMessage();
     };
     ws.onmessage = function(message) {
-       const event = JSON.parse(message.data);
-       sourceEditor.setValue(event.data.message)
+        const event = JSON.parse(message.data);
+        if (event.data.type == "SOURCE_UPDATE") {
+            sourceEditor.setValue(event.data.text)
+        }
     };
     ws.onclose = function() {
-            // pop up" Disconnected!
+        sendDeRegisterMessage();
     };
 }
 
@@ -337,17 +339,35 @@ function sendTestMessage(message) {
 }
 
 
-function sendBroadcastMessage(message) {
+function sendRegisterMessage() {
+    if (sessionId) {
+        sendWsMessage({
+            "type": "register",
+            "data": {}
+        })
+    }
+}
+
+
+function sendDeRegisterMessage() {
     sendWsMessage({
-      "type": "broadcast",
-      "data": {
-        "message": message,
-        "timestamp": getTimestampS()
-      }
+        "type": "deregister",
+        "data": {}
+    })
+}
+
+
+function sendSourceBroadcastMessage(source) {
+    sendWsMessage({
+        "type": "source_broadcast",
+        "data": {
+            "source": source
+        }
     });
 }
 
 function sendWsMessage(event) {
+    event["sessionId"] = sessionId;
     console.log(event);
     //if (ws && ws.readyState == 1) {
     //    ws.send(JSON.stringify(event));
@@ -368,7 +388,7 @@ if (ws) {
         }
         var currentSource = sourceEditor.getValue();
         if (lastSource != currentSource) {
-          sendBroadcastMessage(currentSource);
+          sendSourceBroadcastMessage(currentSource);
           lastSource = currentSource;
         }
      }, SYNC_TIME_MS);
