@@ -4,19 +4,24 @@ from typing import Dict
 
 from chalice import WebsocketDisconnectedError
 
+from chalicelib import ws_store
+
 
 class WSReplyType(str, Enum):
     TEXT = "text"
-    SOURCE_UPDATE = "SOURCE_UPDATE"
+    SOURCE_UPDATE = "source_update"
+    SOURCE_UPDATE_REQUEST = "source_update_request"
+    SYNC_READY = "sync_ready"
 
     def __str__(self):
         return self.value
 
 
 class WSReply(dict):
-    def __init__(self, event_type: WSReplyType):
+    def __init__(self, event_type: WSReplyType, session_id: str):
         super().__init__()
         self.type = event_type
+        self.session_id = session_id
         self.data = {}
 
     @property
@@ -26,6 +31,14 @@ class WSReply(dict):
     @type.setter
     def type(self, event_type: WSReplyType):
         self["type"] = str(event_type)
+
+    @property
+    def session_id(self) -> str:
+        return self["session_id"]
+
+    @session_id.setter
+    def session_id(self, session_id: str):
+        self["session_id"] = session_id
 
     @property
     def data(self) -> Dict:
@@ -40,8 +53,8 @@ class WSReply(dict):
 
 
 class TestWSReply(WSReply):
-    def __init__(self, message: str):
-        super().__init__(WSReplyType.TEXT)
+    def __init__(self, session_id: str, message: str):
+        super().__init__(WSReplyType.TEXT, session_id)
         self.message = message
 
     @property
@@ -54,29 +67,38 @@ class TestWSReply(WSReply):
 
 
 class SourceUpdateReply(WSReply):
-    def __init__(self, text: str):
-        super().__init__(WSReplyType.SOURCE_UPDATE)
-        self.text = text
+    def __init__(self, session_id: str, source_code: str):
+        super().__init__(WSReplyType.SOURCE_UPDATE, session_id)
+        self.source_code = source_code
 
     @property
-    def text(self) -> str:
-        return self.data["text"]
+    def source_code(self) -> str:
+        return self.data["source_code"]
 
-    @text.setter
-    def text(self, text: str):
-        self.data["text"] = text
+    @source_code.setter
+    def source_code(self, source_code: str):
+        self.data["source_code"] = source_code
+
+
+class SyncReadyReply(WSReply):
+    def __init__(self, session_id):
+        super().__init__(WSReplyType.SYNC_READY, session_id)
+
+
+class SourceUpdateRequest(WSReply):
+    def __init__(self, session_id):
+        super().__init__(WSReplyType.SOURCE_UPDATE_REQUEST, session_id)
 
 
 class WSSender:
-
     def __init__(self, app):
         self.app = app
 
-    def send_message(self, connection_id: str, message: WSReply):
+    def send_message(self, connection_id: str, reply: WSReply):
         try:
             self.app.websocket_api.send(
                 connection_id=connection_id,
-                message=message.encode(),
+                message=reply.encode(),
             )
-        except WebsocketDisconnectedError as e:
-            pass
+        except WebsocketDisconnectedError:
+            ws_store.remove_connection(reply.session_id, connection_id)

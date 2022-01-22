@@ -2,6 +2,8 @@ const apiUrl = "https://o5brsfw8jd.execute-api.us-east-2.amazonaws.com/prod/";
 const wsUrl = "wss://dds81j87ij.execute-api.us-east-2.amazonaws.com/api/";
 var wait = localStorageGetItem("wait") || false;
 var check_timeout = 300;
+var lastSource = "";
+var syncReady = false;
 
 var fontSize = 14;
 
@@ -164,28 +166,6 @@ function getIdFromURI() {
   return uri.split("&")[0];
 }
 
-function loadSavedSource() {
-    snippet_id = getIdFromURI();
-
-    if (snippet_id.length == 36) {
-        $.ajax({
-            url: apiUrl + "/submissions/" + snippet_id + "?fields=source_code,language_id,stdin,stdout,stderr,compile_output,message,time,memory,status,compiler_options,command_line_arguments&base64_encoded=true",
-            type: "GET",
-            success: function(data, textStatus, jqXHR) {
-                sourceEditor.setValue(decode(data["source_code"]));
-                $selectLanguage.dropdown("set selected", data["language_id"]);
-                stdinEditor.setValue(decode(data["stdin"]));
-                stdoutEditor.setValue(decode(data["stdout"]));
-                stderrEditor.setValue(decode(data["stderr"]));
-                changeEditorLanguage();
-            },
-            error: handleRunError
-        });
-    } else {
-        loadRandomLanguage();
-    }
-}
-
 function run() {
     if (sourceEditor.getValue().trim() === "") {
         showError("Error", "Source code can't be empty!");
@@ -320,8 +300,14 @@ if (sessionId) {
     };
     ws.onmessage = function(message) {
         const event = JSON.parse(message.data);
-        if (event.data.type == "SOURCE_UPDATE") {
-            sourceEditor.setValue(event.data.text)
+        if (event.type == "source_update") {
+            sourceEditor.setValue(event.data.source_code);
+            lastSource = event.data.source_code;
+            syncReady = true;
+        } else if (event.type == "source_update_request") {
+            sendSourceBroadcastMessage();
+        } else if (event.type == "sync_ready") {
+            syncReady = true;
         }
     };
     ws.onclose = function() {
@@ -357,21 +343,20 @@ function sendDeRegisterMessage() {
 }
 
 
-function sendSourceBroadcastMessage(source) {
+function sendSourceBroadcastMessage() {
     sendWsMessage({
         "type": "source_broadcast",
         "data": {
-            "source": source
+            "source_code": sourceEditor.getValue()
         }
     });
 }
 
 function sendWsMessage(event) {
     event["sessionId"] = sessionId;
-    console.log(event);
-    //if (ws && ws.readyState == 1) {
-    //    ws.send(JSON.stringify(event));
-    //}
+    if (ws && ws.readyState == 1) {
+        ws.send(JSON.stringify(event));
+    }
 }
 
 function getTimestampS() {
@@ -379,16 +364,23 @@ function getTimestampS() {
 }
 
 
+function updateLineByLine(sourceCode) {
+    const currentTextLines = sourceEditor.getValue().split(/\r?\n/);
+    const updateLines = sourceCode.split(/\r?\n/);
+    
+
+}
+
+
 if (ws) {
     const SYNC_TIME_MS = 1000;
-    var lastSource = "";
     const interval = setInterval(function() {
-        if (!sourceEditor) {
+        if (!sourceEditor || !syncReady) {
             return;
         }
         var currentSource = sourceEditor.getValue();
         if (lastSource != currentSource) {
-          sendSourceBroadcastMessage(currentSource);
+          sendSourceBroadcastMessage();
           lastSource = currentSource;
         }
      }, SYNC_TIME_MS);
@@ -550,11 +542,7 @@ $(document).ready(function () {
 
         layout.on("initialised", function () {
             // $(".monaco-editor")[0].appendChild($("#editor-status-line")[0]);
-            if (getIdFromURI()) {
-                loadSavedSource();
-            } else {
-                loadRandomLanguage();
-            }
+            loadRandomLanguage();
             $("#site-navigation").css("border-bottom", "1px solid black");
             sourceEditor.focus();
             editorsUpdateFontSize(fontSize);
@@ -565,7 +553,7 @@ $(document).ready(function () {
 });
 
 const pythonSource = `
-print("Hello world");
+print("Hello world")
 `;
 
 
