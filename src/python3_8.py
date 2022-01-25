@@ -27,7 +27,7 @@ def exec_code(source_code):
     stderr = StringIO()
     with redirect_stdout(output), redirect_stderr(stderr):
         try:
-            exec(source_code)
+            exec(source_code, globals(), globals())
         except Exception:
             print(traceback.format_exc(), file=sys.stderr)
     return output.getvalue(), stderr.getvalue()
