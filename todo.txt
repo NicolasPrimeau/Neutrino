@@ -4,3 +4,6 @@
 - Productize
 - Add Ruby
 - Common library layer
+- Sticky language to session
+- Undo
+
