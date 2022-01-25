@@ -1,6 +1,6 @@
 import datetime
 import time
-from typing import Set
+from typing import Set, Optional
 
 import boto3
 import botocore
@@ -16,7 +16,8 @@ def insert_new_connection(session_id: str, connection_id: str) -> Set[str]:
             Item={
                 "sessionId": session_id,
                 "connectionIds": {connection_id},
-                "expirationDate": expiration_date
+                "expirationDate": expiration_date,
+                "sourceCode": ""
             },
             ConditionExpression="attribute_not_exists(connectionIds)",
         )
@@ -35,6 +36,23 @@ def insert_new_connection(session_id: str, connection_id: str) -> Set[str]:
             ))
         else:
             raise e
+
+
+def save_source_code(session_id: str, source_code: str):
+    _table().update_item(
+        Key={
+            'sessionId': session_id,
+        },
+        UpdateExpression="SET sourceCode = :source_code",
+        ExpressionAttributeValues={
+            ':source_code': source_code,
+        }
+    )
+
+
+def get_source_code(session_id: str) -> Optional[str]:
+    result = _table().get_item(Key={'sessionId': session_id})
+    return result.get("Item", result.get("Attributes", {})).get("sourceCode") or None
 
 
 def get_connection_ids_for_session(session_id: str) -> Set[str]:

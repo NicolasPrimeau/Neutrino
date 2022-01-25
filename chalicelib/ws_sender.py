@@ -67,9 +67,10 @@ class TestWSReply(WSReply):
 
 
 class SourceUpdateReply(WSReply):
-    def __init__(self, session_id: str, source_code: str):
+    def __init__(self, session_id: str, source_code: str, full_update=False):
         super().__init__(WSReplyType.SOURCE_UPDATE, session_id)
         self.source_code = source_code
+        self.full_update = full_update
 
     @property
     def source_code(self) -> str:
@@ -78,6 +79,14 @@ class SourceUpdateReply(WSReply):
     @source_code.setter
     def source_code(self, source_code: str):
         self.data["source_code"] = source_code
+
+    @property
+    def full_update(self) -> bool:
+        return self.data["full_update"]
+
+    @full_update.setter
+    def full_update(self, full_update: bool):
+        self.data["full_update"] = full_update
 
 
 class SyncReadyReply(WSReply):
@@ -94,11 +103,13 @@ class WSSender:
     def __init__(self, app):
         self.app = app
 
-    def send_message(self, connection_id: str, reply: WSReply):
+    def send_message(self, connection_id: str, reply: WSReply) -> bool:
         try:
             self.app.websocket_api.send(
                 connection_id=connection_id,
                 message=reply.encode(),
             )
+            return True
         except WebsocketDisconnectedError:
             ws_store.remove_connection(reply.session_id, connection_id)
+            return False

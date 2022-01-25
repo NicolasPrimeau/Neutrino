@@ -6,7 +6,7 @@ html, body {
 }
 
 body {
-    background: url(/images/judge0_background.png) no-repeat center center fixed;
+    background: url(/images/background.png) no-repeat center center fixed;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
@@ -93,7 +93,7 @@ body {
 }
 
 #site-content {
-    height: calc(100% - 45px - 19px);
+    height: calc(100% - 45px);
 }
 
 #site-modal .header {

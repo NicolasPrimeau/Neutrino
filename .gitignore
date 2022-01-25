@@ -5,3 +5,4 @@ venv
 build
 .pytest_cache
 .chalice/deployments/
+libs

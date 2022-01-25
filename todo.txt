@@ -1,0 +1,6 @@
+- Participant count
+- Connected/Disconnected notifications
+- Auto recognize language
+- Productize
+- Add Ruby
+- Common library layer

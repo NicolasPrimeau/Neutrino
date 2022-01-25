@@ -1,4 +1,5 @@
-const apiUrl = "https://o5brsfw8jd.execute-api.us-east-2.amazonaws.com/prod/";
+const url = "http://np.neutrino.s3-website.us-east-2.amazonaws.com/";
+const apiUrl = "https://o5brsfw8jd.execute-api.us-east-2.amazonaws.com/prod";
 const wsUrl = "wss://dds81j87ij.execute-api.us-east-2.amazonaws.com/api/";
 var wait = localStorageGetItem("wait") || false;
 var check_timeout = 300;
@@ -138,7 +139,6 @@ function handleResult(data) {
     timeEnd = performance.now();
     console.log("It took " + (timeEnd - timeStart) + " ms to get submission result.");
 
-    var status = data.status;
     var stdout = data.stdout;
     var stderr = data.stderr;
 
@@ -264,13 +264,13 @@ function resizeEditor(layoutInfo) {
 
 }
 
-const fileNames = {
-    1: "python.py"
-};
-
-
 function clearSource() {
     sourceEditor.setValue("");
+    sendSourceBroadcastMessage(true);
+}
+
+function saveSource() {
+    sendSaveMessage();
 }
 
 function downloadSource() {
@@ -301,11 +301,14 @@ if (sessionId) {
     ws.onmessage = function(message) {
         const event = JSON.parse(message.data);
         if (event.type == "source_update") {
-            sourceEditor.setValue(event.data.source_code);
-            lastSource = event.data.source_code;
+            if (event.data.full_update) {
+                applyUpdate(event.data.source_code);
+            } else {
+                applyPartialUpdate(event.data.source_code);
+            }
             syncReady = true;
         } else if (event.type == "source_update_request") {
-            sendSourceBroadcastMessage();
+            sendSourceBroadcastMessage(full_update=true);
         } else if (event.type == "sync_ready") {
             syncReady = true;
         }
@@ -343,11 +346,22 @@ function sendDeRegisterMessage() {
 }
 
 
-function sendSourceBroadcastMessage() {
+function sendSaveMessage() {
+    sendWsMessage({
+        "type": "save",
+        "data": {
+            "source_code": sourceEditor.getValue()
+        }
+    })
+}
+
+
+function sendSourceBroadcastMessage(full_update = false) {
     sendWsMessage({
         "type": "source_broadcast",
         "data": {
-            "source_code": sourceEditor.getValue()
+            "source_code": sourceEditor.getValue(),
+            "full_update": full_update
         }
     });
 }
@@ -364,11 +378,28 @@ function getTimestampS() {
 }
 
 
-function updateLineByLine(sourceCode) {
+function applyUpdate(sourceCode) {
+    const lineNumber = sourceEditor.getPosition().lineNumber - 1;
+    const col = sourceEditor.getPosition().column;
+    sourceEditor.setValue(sourceCode);
+    lastSource = sourceCode;
+    sourceEditor.setPosition({lineNumber: lineNumber + 1, column: col});
+}
+
+function applyPartialUpdate(sourceCode) {
     const currentTextLines = sourceEditor.getValue().split(/\r?\n/);
     const updateLines = sourceCode.split(/\r?\n/);
-    
 
+    const lineNumber = sourceEditor.getPosition().lineNumber - 1;
+    const col = sourceEditor.getPosition().column;
+
+    updateLines[lineNumber] = currentTextLines[lineNumber];
+
+    const update = updateLines.join("\r\n");
+    sourceEditor.setValue(update);
+    lastSource = update;
+
+    sourceEditor.setPosition({lineNumber: lineNumber + 1, column: col});
 }
 
 
@@ -426,24 +457,22 @@ $(document).ready(function () {
 
     $("body").keydown(function (e) {
         var keyCode = e.keyCode || e.which;
-        if (keyCode == 120) { // F9
+
+        if (keyCode == 120) { // F9 -> run
             e.preventDefault();
             run();
-        } else if (keyCode == 119) { // F8
+        } else if (keyCode == 113) { //F2 -> New file
             e.preventDefault();
-            var url = prompt("Enter URL of Judge0 API:", apiUrl);
-            if (url != null) {
-                url = url.trim();
-            }
-            if (url != null && url != "") {
-                apiUrl = url;
-                localStorageSetItem("api-url", apiUrl);
-            }
-        } else if (keyCode == 118) { // F7
+            window.open(url, '_blank').focus();
+        } else if (keyCode == 115) { //F4 -> Clear file
             e.preventDefault();
-            wait = !wait;
-            localStorageSetItem("wait", wait);
-            alert(`Submission wait is ${wait ? "ON. Enjoy" : "OFF"}.`);
+            clearSource();
+        } else if (keyCode == 121) { //F10 -> Download file
+            e.preventDefault();
+            downloadSource();
+        } else if (event.ctrlKey && keyCode == 83) { // Ctrl+s
+            e.preventDefault();
+            sendSaveMessage();
         } else if (event.ctrlKey && keyCode == 107) { // Ctrl++
             e.preventDefault();
             fontSize += 1;
@@ -484,6 +513,7 @@ $(document).ready(function () {
             });
 
             sourceEditor.onDidLayoutChange(resizeEditor);
+
         });
 
         layout.registerComponent("stdin", function (container, state) {
@@ -557,12 +587,35 @@ print("Hello world")
 `;
 
 
+const javaSource = `
+public class Main {
+  public static void main() {
+    System.out.println("Hello world");
+  }
+}
+`;
+
+const nodeSource = `
+console.log("Hello world");
+`;
+
+const fileNames = {
+    1: "python.py",
+    2: "main.java",
+    3: "main.js"
+};
+
+
 const sources = {
     1: pythonSource,
+    2: javaSource,
+    3: nodeSource
 };
 
 const languagePaths = {
-    1: "neutrino-python-3_8"
+    1: "neutrino-python-3_8",
+    2: "neutrino-java-11",
+    3: "neutrino-node-14"
 }
 
 

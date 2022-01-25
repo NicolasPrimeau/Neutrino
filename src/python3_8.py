@@ -16,9 +16,6 @@ def handle_event(event, _):
             'Access-Control-Allow-Origin': '*'
         },
         "body": json.dumps({
-            "status": {
-                "description": "Ok"
-            },
             "stdout": stdout,
             "stderr": stderr
         })

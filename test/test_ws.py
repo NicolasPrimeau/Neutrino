@@ -50,8 +50,7 @@ def test_send_register():
             "message": None
         }
     }))
-    with pytest.raises(websocket._exceptions.WebSocketTimeoutException):
-        conn.recv()
+    assert json.loads(conn.recv()) == {"type": "sync_ready", "session_id": "1", "data": {}}
 
 
 def test_setup():
@@ -62,6 +61,7 @@ def test_setup():
         "sessionId": "1",
         "data": {}
     }))
+    assert json.loads(conn1.recv()) == {"type": "sync_ready", "session_id": "1", "data": {}}
 
     conn2 = get_connection()
     conn2.send(json.dumps({
@@ -75,7 +75,8 @@ def test_setup():
         "type": ws_handler.WSEventType.SOURCE_BROADCAST,
         "sessionId": "1",
         "data": {
-            "source_code": 'print("Hello world")'
+            "source_code": 'print("Hello world")',
+            "full_update": True
         }
     }))
 
@@ -83,7 +84,8 @@ def test_setup():
         "type": "source_update",
         "session_id": "1",
         "data": {
-            "source_code": 'print("Hello world")'
+            "source_code": 'print("Hello world")',
+            "full_update": True
         }
     }
     with pytest.raises(websocket._exceptions.WebSocketTimeoutException):

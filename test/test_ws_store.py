@@ -31,3 +31,14 @@ def test_deregister():
     ws_store.insert_new_connection("session1", "connection1")
     assert ws_store.insert_new_connection("session1", "connection2") == {"connection1", "connection2"}
     assert ws_store.remove_connection("session1", "connection1") == {"connection2"}
+
+
+def test_save_text():
+    ws_store.delete_item("session1")
+    ws_store.save_source_code("session1", "test code")
+    assert ws_store.get_source_code("session1") == "test code"
+
+
+def test_load_not_exist():
+    ws_store.delete_item("session1")
+    assert ws_store.get_source_code("session1") is None

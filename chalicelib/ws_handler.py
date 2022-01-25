@@ -13,6 +13,7 @@ class WSEventType(str, Enum):
     DEREGISTER = "deregister"
     SOURCE_BROADCAST = "source_broadcast"
     TEST = "test"
+    SAVE = "save"
 
     def __str__(self):
         return self.value
@@ -52,6 +53,16 @@ class SourceBroadcastEvent(WSEvent):
     def source_code(self) -> str:
         return self.get("data", {}).get("source_code")
 
+    @property
+    def full_update(self) -> bool:
+        return self.get("data", {}).get("full_update", False)
+
+
+class SaveEvent(WSEvent):
+    @property
+    def source_code(self) -> str:
+        return self.get("data", {}).get("source_code")
+
 
 class WSHandler:
     def __init__(self, connection_id: str, sender: ws_sender.WSSender):
@@ -69,6 +80,8 @@ class WSHandler:
             self.deregister(DeregisterEvent(event))
         elif event.type == WSEventType.SOURCE_BROADCAST:
             self.broadcast(SourceBroadcastEvent(event))
+        elif event.type == WSEventType.SAVE:
+            self.save(SaveEvent(event))
         elif event.type == WSEventType.TEST:
             self.test(TestEvent(event))
         else:
@@ -77,11 +90,21 @@ class WSHandler:
     def register(self, event: RegisterEvent):
         connection_ids = ws_store.insert_new_connection(event.session_id, self.connection_id)
         connection_ids.remove(self.connection_id)
-        if not connection_ids:
-            return self.sender.send_message(self.connection_id, ws_sender.SyncReadyReply(event.session_id))
 
-        recipient_id = random.choice(list(connection_ids))
-        self.sender.send_message(recipient_id, ws_sender.SourceUpdateRequest(event.session_id))
+        connection_ids = list(connection_ids)
+        random.shuffle(connection_ids)
+        while connection_ids:
+            recipient_id = connection_ids.pop(0)
+            if self.sender.send_message(recipient_id, ws_sender.SourceUpdateRequest(event.session_id)):
+                return
+
+        source_code = ws_store.get_source_code(event.session_id)
+        if source_code:
+            self.sender.send_message(self.connection_id, ws_sender.SourceUpdateReply(
+                event.session_id, source_code, full_update=True
+            ))
+
+        self.sender.send_message(self.connection_id, ws_sender.SyncReadyReply(event.session_id))
 
     def deregister(self, event: DeregisterEvent):
         ws_store.remove_connection(event.session_id, self.connection_id)
@@ -95,8 +118,11 @@ class WSHandler:
         for connection_id in connection_ids:
             self.sender.send_message(
                 connection_id,
-                ws_sender.SourceUpdateReply(event.session_id, event.source_code)
+                ws_sender.SourceUpdateReply(event.session_id, event.source_code, full_update=event.full_update)
             )
+
+    def save(self, event: SaveEvent):
+        ws_store.save_source_code(event.session_id, event.source_code)
 
     def test(self, event: TestEvent):
         self.sender.send_message(self.connection_id, ws_sender.TestWSReply(event.session_id, event.message))
