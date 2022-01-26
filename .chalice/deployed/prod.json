@@ -1,6 +1,11 @@
 {
   "resources": [
     {
+      "name": "managed-layer",
+      "resource_type": "lambda_layer",
+      "layer_version_arn": "arn:aws:lambda:us-east-2:357603364432:layer:neutrino-ws-prod-managed-layer:8"
+    },
+    {
       "name": "websocket_connect",
       "resource_type": "lambda_function",
       "lambda_arn": "arn:aws:lambda:us-east-2:357603364432:function:neutrino-ws-prod-websocket_connect"

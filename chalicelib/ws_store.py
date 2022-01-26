@@ -1,6 +1,6 @@
 import datetime
 import time
-from typing import Set, Optional
+from typing import Set, Optional, Tuple
 
 import boto3
 import botocore
@@ -17,7 +17,8 @@ def insert_new_connection(session_id: str, connection_id: str) -> Set[str]:
                 "sessionId": session_id,
                 "connectionIds": {connection_id},
                 "expirationDate": expiration_date,
-                "sourceCode": ""
+                "sourceCode": "",
+                "languageId": "",
             },
             ConditionExpression="attribute_not_exists(connectionIds)",
         )
@@ -38,21 +39,25 @@ def insert_new_connection(session_id: str, connection_id: str) -> Set[str]:
             raise e
 
 
-def save_source_code(session_id: str, source_code: str):
+def save_source_code(session_id: str, source_code: str, language_id: int):
     _table().update_item(
         Key={
             'sessionId': session_id,
         },
-        UpdateExpression="SET sourceCode = :source_code",
+        UpdateExpression="SET sourceCode = :source_code, languageId = :language_id",
         ExpressionAttributeValues={
-            ':source_code': source_code,
+            ":source_code": source_code,
+            ":language_id": language_id
         }
     )
 
 
-def get_source_code(session_id: str) -> Optional[str]:
+def get_source_code(session_id: str) -> Tuple[Optional[str], Optional[int]]:
     result = _table().get_item(Key={'sessionId': session_id})
-    return result.get("Item", result.get("Attributes", {})).get("sourceCode") or None
+    attributes = result.get("Item", result.get("Attributes", {}))
+    source_code = attributes.get("sourceCode")
+    language_id = attributes.get("languageId")
+    return source_code, int(language_id) if language_id else None
 
 
 def get_connection_ids_for_session(session_id: str) -> Set[str]:

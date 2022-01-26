@@ -69,6 +69,8 @@ def test_setup():
         "sessionId": "1",
         "data": {}
     }))
+    assert json.loads(conn1.recv()) == {"type": "new_participant", "session_id": "1", "data": {}}
+    assert json.loads(conn2.recv()) == {"type": "new_participant", "session_id": "1", "data": {}}
 
     assert json.loads(conn1.recv()) == {"type": "source_update_request", "session_id": "1", "data": {}}
     conn1.send(json.dumps({
@@ -76,6 +78,7 @@ def test_setup():
         "sessionId": "1",
         "data": {
             "source_code": 'print("Hello world")',
+            "language_id": 1,
             "full_update": True
         }
     }))
@@ -85,6 +88,7 @@ def test_setup():
         "session_id": "1",
         "data": {
             "source_code": 'print("Hello world")',
+            "language_id": 1,
             "full_update": True
         }
     }

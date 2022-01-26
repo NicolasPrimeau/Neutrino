@@ -6,6 +6,8 @@ var check_timeout = 300;
 var lastSource = "";
 var syncReady = false;
 
+var participantCount = 0;
+
 var fontSize = 14;
 
 var MonacoVim;
@@ -14,7 +16,7 @@ var MonacoEmacs;
 var layout;
 
 var sourceEditor;
-var stdinEditor;
+// var stdinEditor;
 var stdoutEditor;
 var stderrEditor;
 
@@ -54,9 +56,12 @@ var layoutConfig = {
                 readOnly: false
             },
             width: 60
-        }, {
+        },
+        {
             type: "column",
-            content: [{
+            content: [
+            /*
+            {
                 type: "stack",
                 height: 0,
                 content: [{
@@ -68,7 +73,9 @@ var layoutConfig = {
                         readOnly: false
                     }
                 }]
-            }, {
+            },
+            */
+            {
                 type: "stack",
                 content: [{
                         type: "component",
@@ -135,13 +142,9 @@ function handleRunError(jqXHR, textStatus, errorThrown) {
     $runBtn.removeClass("loading");
 }
 
-function handleResult(data) {
-    timeEnd = performance.now();
-    console.log("It took " + (timeEnd - timeStart) + " ms to get submission result.");
 
-    var stdout = data.stdout;
-    var stderr = data.stderr;
 
+function updateRunOutput(stdout, stderr) {
     stdoutEditor.setValue(stdout);
     stderrEditor.setValue(stderr);
 
@@ -157,13 +160,24 @@ function handleResult(data) {
             dot.hidden = false;
         }
     }
+}
 
+function handleResult(data) {
+    timeEnd = performance.now();
+    console.log("It took " + (timeEnd - timeStart) + " ms to get submission result.");
+
+    updateRunOutput(data.stdout, data.stderr);
+    sendRunOutput();
     $runBtn.removeClass("loading");
 }
 
 function getIdFromURI() {
   var uri = location.search.substr(1).trim();
   return uri.split("&")[0];
+}
+
+function getLanguageId() {
+    return parseInt($selectLanguage.val());
 }
 
 function run() {
@@ -181,13 +195,13 @@ function run() {
     stderrEditor.setValue("");
 
     var sourceValue = sourceEditor.getValue();
-    var stdinValue = stdinEditor.getValue();
-    var languageId = parseInt($selectLanguage.val());
+    //var stdinValue = stdinEditor.getValue();
+    var languageId = getLanguageId();
 
     var data = {
         source_code: sourceValue,
         language_id: languageId,
-        stdin: stdinValue,
+        //stdin: stdinValue,
     };
 
     var sendRequest = function(data) {
@@ -255,7 +269,11 @@ function loadRandomLanguage() {
         values.push($selectLanguage[0].options[i].value);
     }
     // $selectLanguage.dropdown("set selected", values[Math.floor(Math.random() * $selectLanguage[0].length)]);
-    $selectLanguage.dropdown("set selected", values[9]);
+    setLanguage(values[0]);
+}
+
+function setLanguage(languageId) {
+    $selectLanguage.dropdown("set selected", languageId);
     insertTemplate();
 }
 
@@ -280,7 +298,7 @@ function downloadSource() {
 
 function editorsUpdateFontSize(fontSize) {
     sourceEditor.updateOptions({fontSize: fontSize});
-    stdinEditor.updateOptions({fontSize: fontSize});
+    // stdinEditor.updateOptions({fontSize: fontSize});
     stdoutEditor.updateOptions({fontSize: fontSize});
     stderrEditor.updateOptions({fontSize: fontSize});
 }
@@ -297,24 +315,35 @@ if (sessionId) {
     ws = new WebSocket(wsUrl);
     ws.onopen = function() {
         sendRegisterMessage();
+        updateParticipantCount(1)
     };
     ws.onmessage = function(message) {
         const event = JSON.parse(message.data);
         if (event.type == "source_update") {
+            setLanguage(event.data.language_id);
             if (event.data.full_update) {
                 applyUpdate(event.data.source_code);
             } else {
-                applyPartialUpdate(event.data.source_code);
+                // Partial update does not work well
+                // applyPartialUpdate(event.data.source_code);
+                applyUpdate(event.data.source_code);
             }
             syncReady = true;
         } else if (event.type == "source_update_request") {
             sendSourceBroadcastMessage(full_update=true);
         } else if (event.type == "sync_ready") {
             syncReady = true;
+        } else if (event.type == "run_output_update") {
+            updateRunOutput(event.data.stdout, event.data.stderr);
+        } else if (event.type == "new_participant") {
+            updateParticipantCount(1);
+        } else if (event.type == "participant_drop") {
+            updateParticipantCount(-1);
         }
     };
     ws.onclose = function() {
         sendDeRegisterMessage();
+        updateParticipantCount(-1)
     };
 }
 
@@ -329,12 +358,10 @@ function sendTestMessage(message) {
 
 
 function sendRegisterMessage() {
-    if (sessionId) {
-        sendWsMessage({
-            "type": "register",
-            "data": {}
-        })
-    }
+    sendWsMessage({
+        "type": "register",
+        "data": {}
+    })
 }
 
 
@@ -350,7 +377,8 @@ function sendSaveMessage() {
     sendWsMessage({
         "type": "save",
         "data": {
-            "source_code": sourceEditor.getValue()
+            "source_code": sourceEditor.getValue(),
+            "language_id": getLanguageId()
         }
     })
 }
@@ -362,6 +390,21 @@ function sendSourceBroadcastMessage(full_update = false) {
         "data": {
             "source_code": sourceEditor.getValue(),
             "full_update": full_update
+        }
+    });
+}
+
+function updateParticipantCount(change) {
+    participantCount += change;
+    $("#participant-count").text(participantCount);
+}
+
+function sendRunOutput() {
+    sendWsMessage({
+        "type": "run_output",
+        "data": {
+            "stdout": stdoutEditor.getValue(),
+            "stderr": stderrEditor.getValue()
         }
     });
 }
@@ -393,7 +436,9 @@ function applyPartialUpdate(sourceCode) {
     const lineNumber = sourceEditor.getPosition().lineNumber - 1;
     const col = sourceEditor.getPosition().column;
 
-    updateLines[lineNumber] = currentTextLines[lineNumber];
+    if (lineNumber > 1 ) {
+        updateLines[lineNumber] = currentTextLines[lineNumber];
+    }
 
     const update = updateLines.join("\r\n");
     sourceEditor.setValue(update);
@@ -515,7 +560,7 @@ $(document).ready(function () {
             sourceEditor.onDidLayoutChange(resizeEditor);
 
         });
-
+        /*
         layout.registerComponent("stdin", function (container, state) {
             stdinEditor = monaco.editor.create(container.getElement()[0], {
                 automaticLayout: true,
@@ -529,6 +574,7 @@ $(document).ready(function () {
 
             });
         });
+        */
 
         layout.registerComponent("stdout", function (container, state) {
             stdoutEditor = monaco.editor.create(container.getElement()[0], {

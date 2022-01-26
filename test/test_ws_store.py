@@ -35,10 +35,10 @@ def test_deregister():
 
 def test_save_text():
     ws_store.delete_item("session1")
-    ws_store.save_source_code("session1", "test code")
-    assert ws_store.get_source_code("session1") == "test code"
+    ws_store.save_source_code("session1", "test code", 0)
+    assert ws_store.get_source_code("session1") == ("test code", 0)
 
 
 def test_load_not_exist():
     ws_store.delete_item("session1")
-    assert ws_store.get_source_code("session1") is None
+    assert ws_store.get_source_code("session1") == (None, None)

@@ -5,7 +5,9 @@
     "prod": {
       "api_gateway_stage": "api",
       "manage_iam_role": false,
-      "iam_role_arn": "arn:aws:iam::357603364432:role/Neutrino-Lambda-Runner"
+      "automatic_layer": true,
+      "iam_role_arn": "arn:aws:iam::357603364432:role/Neutrino-Lambda-Runner",
+      "lambda_timeout": 5
     }
   }
 }

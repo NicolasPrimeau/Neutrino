@@ -20,12 +20,9 @@ def test_multi_line_dependency():
 
 def test_stderr():
     response = requests.post(URL, json={"source_code": "not_python"})
-    assert response.json().get("stderr") == (
-        'Traceback (most recent call last):\n'
-         '  File "/var/task/python3_8.py", line 27, in exec_code\n'
-         '    exec(source_code)\n'
-         '  File "<string>", line 1, in <module>\n'
-         "NameError: name 'not_python' is not defined\n"
-         '\n'
-    )
+    assert "NameError: name 'not_python' is not defined" in response.json().get("stderr")
 
+
+def test_import():
+    response = requests.post(URL, json={"source_code": "import random; print(random.random());"})
+    assert 0 <= float(response.json().get("stdout").strip()) < 1
