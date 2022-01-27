@@ -1,8 +1,7 @@
 - Connected/Disconnected notifications
 - Auto recognize language
 - Productize
-- Add Ruby
 - Common library layer
 - Undo
 - participant names
-- funny session names
+- Fix puts in ruby (does not work)

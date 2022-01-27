@@ -4,3 +4,4 @@ botocore
 websocket-client
 pytest
 requests
+coolname

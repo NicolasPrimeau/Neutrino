@@ -1,4 +1,7 @@
+import json
+
 from boto3.session import Session
+from coolname import generate_slug
 
 from chalice import Chalice
 
@@ -11,6 +14,11 @@ app.experimental_feature_flags.update([
 ])
 
 SENDER = ws_sender.WSSender(app)
+
+
+@app.route('/session/new', methods=["POST"], cors=True)
+def new_session():
+    return json.dumps({"name": generate_slug(4)})
 
 
 @app.on_ws_connect()

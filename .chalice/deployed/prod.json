@@ -3,7 +3,18 @@
     {
       "name": "managed-layer",
       "resource_type": "lambda_layer",
-      "layer_version_arn": "arn:aws:lambda:us-east-2:357603364432:layer:neutrino-ws-prod-managed-layer:8"
+      "layer_version_arn": "arn:aws:lambda:us-east-2:357603364432:layer:neutrino-ws-prod-managed-layer:11"
+    },
+    {
+      "name": "api_handler",
+      "resource_type": "lambda_function",
+      "lambda_arn": "arn:aws:lambda:us-east-2:357603364432:function:neutrino-ws-prod"
+    },
+    {
+      "name": "rest_api",
+      "resource_type": "rest_api",
+      "rest_api_id": "ckc08f6h01",
+      "rest_api_url": "https://ckc08f6h01.execute-api.us-east-2.amazonaws.com/api/"
     },
     {
       "name": "websocket_connect",

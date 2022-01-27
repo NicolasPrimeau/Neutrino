@@ -1,5 +1,6 @@
 const url = "http://np.neutrino.s3-website.us-east-2.amazonaws.com/";
 const apiUrl = "https://o5brsfw8jd.execute-api.us-east-2.amazonaws.com/prod";
+const restApiUrl = "https://ckc08f6h01.execute-api.us-east-2.amazonaws.com/api/"
 const wsUrl = "wss://dds81j87ij.execute-api.us-east-2.amazonaws.com/api/";
 var wait = localStorageGetItem("wait") || false;
 var check_timeout = 300;
@@ -142,8 +143,6 @@ function handleRunError(jqXHR, textStatus, errorThrown) {
     $runBtn.removeClass("loading");
 }
 
-
-
 function updateRunOutput(stdout, stderr) {
     stdoutEditor.setValue(stdout);
     stderrEditor.setValue(stderr);
@@ -247,8 +246,29 @@ function getUuidV4() {
   );
 }
 
+function getFunnyName() {
+    var sendRequest = function() {
+        $.ajax({
+            url: restApiUrl + `/session/new`,
+            type: "POST",
+            contentType: "application/json",
+            dataType: 'json',
+            success: function (data) {
+                setSession(data.name);
+            },
+            error: handleRunError
+        });
+    }
+    sendRequest();
+}
+
+function setSession(sessionName) {
+    window.location.href = updateURLParameter(window.location.href, "sessionId", sessionName);
+}
+
 function newSession() {
-    window.location.href = updateURLParameter(window.location.href, "sessionId", getUuidV4());
+    // setSession(getUuidV4());
+    getFunnyName();
 }
 
 function changeEditorLanguage() {
@@ -645,23 +665,29 @@ const nodeSource = `
 console.log("Hello world");
 `;
 
+const ruby27Source = `
+p "Hello world"
+`;
+
 const fileNames = {
     1: "python.py",
     2: "main.java",
-    3: "main.js"
+    3: "main.js",
+    4: "main.rb"
 };
-
 
 const sources = {
     1: pythonSource,
     2: javaSource,
-    3: nodeSource
+    3: nodeSource,
+    4: ruby27Source
 };
 
 const languagePaths = {
     1: "neutrino-python-3_8",
     2: "neutrino-java-11",
-    3: "neutrino-node-14"
+    3: "neutrino-node-14",
+    4: "neutrino-ruby-2_7"
 }
 
 
