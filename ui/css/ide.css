@@ -132,5 +132,7 @@ input[type="text"] {
     max-width: 70%;
     margin-right: auto;
     margin-left: auto;
+    margin-bottom: 20px;
     margin-top: 20px;
+    font-size: 16px;
 }
