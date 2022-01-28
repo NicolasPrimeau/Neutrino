@@ -523,35 +523,37 @@ $(document).ready(function () {
     $sessionBtn.click(function (e) {
         newSession();
     });
-    //  && window.isSecureContext
+
+    $('#more').dropdown();
+
     if (sessionId != null) {
-        $("#right-menu").append(`
-            <div class="item borderless">
-                <div id="participant-count" class="ui label">
-                    <i class="user icon"></i>0
-                </div>
+        $("#participants-count-holder").html(`
+            <div id="participant-count" class="ui label">
+                <i class="user icon"></i>0
             </div>
         `);
         $participantCountIcon = $("#participant-count");
 
-        $("#left-menu").append(`
-            <div class="item no-left-padding borderless">
-                <div id="copy-session-btn" class="ui primary labeled icon button">
-                    <i class="copy icon"></i>Copy Link
+        if (window.isSecureContext) {
+            $("#left-menu").append(`
+                <div class="item no-left-padding borderless">
+                    <div id="copy-session-btn" class="ui primary labeled icon button">
+                        <i class="copy icon"></i>Copy Link
+                    </div>
                 </div>
-            </div>
-        `);
-        $copySessionBtn = $("#copy-session-btn");
-        $copySessionBtn.click(function (e) {
-            // navigator.clipboard.writeText(window.location.href);
-            $copySessionBtn.html(`
-                <i class=\"check icon\"></i>
-                Copied
             `);
-            setTimeout(function() {
-                $copySessionBtn.html("<i class=\"copy icon\"></i>Copy Link");
-            }, 1000);
-        });
+            $copySessionBtn = $("#copy-session-btn");
+            $copySessionBtn.click(function (e) {
+                // navigator.clipboard.writeText(window.location.href);
+                $copySessionBtn.html(`
+                    <i class=\"check icon\"></i>
+                    Copied
+                `);
+                setTimeout(function() {
+                    $copySessionBtn.html("<i class=\"copy icon\"></i>Copy Link");
+                }, 1000);
+            });
+        }
     }
 
     $("body").keydown(function (e) {

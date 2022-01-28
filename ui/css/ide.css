@@ -71,38 +71,20 @@ body {
 }
 
 #site-content {
-    height: calc(100% - 45px);
+    height: calc(100% - 45px - 19px);
 }
 
 #site-modal .header {
     color: #db2828;
 }
 
-#site-footer, #status-line, #donate-line {
-    background-color: #0E6EB8;
-    bottom: 0;
-    font-family: "Droid Sans Mono", monospace, monospace, "Droid Sans Fallback";
-    font-size: 13px;
-    height: 19px;
-    padding-left: 16px;
-    padding-right: 16px;
-    position: fixed;
-}
-
 #site-footer {
-    color: #41a5f1;
+    font-family: 'Exo 2', sans-serif;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(0, 0, 0, .87);
     left: 0;
     text-align: center;
     width: 100%;
-}
-
-#site-footer a {
-    color: #41a5f1;
-    font-weight: bold;
-}
-
-#site-footer a:hover {
-    color: #a0d2f8;
 }
 
 #status-line {
@@ -113,37 +95,6 @@ body {
     width: fit-content;
 }
 
-#editor-status-line {
-    background: transparent;
-    color: #fff;
-    font-family: monospace;
-    height: 19px;
-    padding: 0px 16px;
-    width: inherit;
-}
-
-#editor-status-line input[type=text] {
-    background: transparent;
-    border: none;
-    color: #fff;
-    font-family: monospace;
-    outline: none;
-}
-
-#editor-status-line input[type=text]::selection {
-    background-color: #cce2ff;
-    color: #fff;
-}
-
-.blink {
-    animation: blinker 1s linear infinite;
-}
-
-@keyframes blinker {
-    50% {
-        background: #FFD700;
-    }
-}
 
 .dot {
     background: #0E6EB8;
@@ -165,4 +116,12 @@ input[type="text"] {
 
 #copy-session-btn {
     width: 130px;
+}
+
+#privacy-policy {
+    color: rgba(255, 255, 255, 0.9);
+    max-width: 70%;
+    margin-right: auto;
+    margin-left: auto;
+    margin-top: 20px;
 }
