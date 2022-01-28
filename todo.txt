@@ -3,5 +3,3 @@
 - Undo
 - participant names
 - Fix puts in ruby (does not work)
-- google ads
-
