@@ -10,6 +10,8 @@
             snippet, snippets, code snippet, code snippets, pastebin, execute code, programming in browser, run java online, run python online, run ruby online">
     <meta name="author" content="Nicolas Primeau">
 
+    <!-- Contact me info: nicolas.primeau@gmail.com-->
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <meta property="og:title" content="Neutrino IDE - Free collaborative online code editor">
@@ -55,9 +57,9 @@
     <meta name="msapplication-TileColor" content="#da532c">
     <meta name="theme-color" content="#000000">
 
-
     <link rel="shortcut icon" href="./images/favicon.ico" type="image/x-icon">
     <link rel="icon" href="./images/favicon.ico" type="image/x-icon">
+
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-39DDX9T07Z"></script>
     <script>
@@ -77,7 +79,7 @@
                 <h2>Neutrino IDE</h2>
             </a>
         </div>
-        <div class="left menu">
+        <div id="left-menu" class="left menu">
             <div class="ui dropdown item site-links on-hover">
                 File <i class="dropdown icon"></i>
                 <div class="menu">
@@ -105,12 +107,10 @@
                     <i class="play icon"></i>New Session
                 </button>
             </div>
-
         </div>
-        <div class="right menu">
+        <div id="right-menu" class="right menu">
             <div class="item borderless">
-                <i class="user icon"></i>
-                <p id="participant-count">0</p>
+                <p id="notification"></p>
             </div>
         </div>
     </div>

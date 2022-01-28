@@ -111,8 +111,9 @@ class WSHandler:
     def register(self, event: RegisterEvent):
         connection_ids = ws_store.insert_new_connection(event.session_id, self.connection_id)
         connection_ids.remove(self.connection_id)
-        for connection_id in connection_ids:
-            self.sender.send_message(connection_id, ws_sender.NewParticipant(event.session_id))
+        for connection_id in list(connection_ids):
+            if not self.sender.send_message(connection_id, ws_sender.NewParticipant(event.session_id)):
+                connection_ids.remove(connection_id)
             self.sender.send_message(self.connection_id, ws_sender.NewParticipant(event.session_id))
 
         if self._send_source_update_request(event.session_id, list(connection_ids)):

@@ -31,8 +31,9 @@ const sessionId = params["sessionId"];
 var $selectLanguage;
 var $insertTemplateBtn;
 var $runBtn;
-var $navigationMessage;
-var $updates;
+var $sessionBtn;
+var $copySessionBtn;
+var $participantCountIcon;
 
 var timeStart;
 var timeEnd;
@@ -335,7 +336,8 @@ if (sessionId) {
     ws = new WebSocket(wsUrl);
     ws.onopen = function() {
         sendRegisterMessage();
-        updateParticipantCount(1)
+        updateParticipantCount(1);
+        updateNotification("Connected");
     };
     ws.onmessage = function(message) {
         const event = JSON.parse(message.data);
@@ -363,7 +365,8 @@ if (sessionId) {
     };
     ws.onclose = function() {
         sendDeRegisterMessage();
-        updateParticipantCount(-1)
+        updateParticipantCount(-1);
+        updateNotification("Disconnected");
     };
 }
 
@@ -416,7 +419,11 @@ function sendSourceBroadcastMessage(full_update = false) {
 
 function updateParticipantCount(change) {
     participantCount += change;
-    $("#participant-count").text(participantCount);
+    $participantCountIcon.html("<i class=\"user icon\"></i>" + participantCount);
+}
+
+function updateNotification(text) {
+    $("#notification").fadeIn(1000).text(text).delay(1000).fadeOut(1000);
 }
 
 function sendRunOutput() {
@@ -516,9 +523,36 @@ $(document).ready(function () {
     $sessionBtn.click(function (e) {
         newSession();
     });
+    //  && window.isSecureContext
+    if (sessionId != null) {
+        $("#right-menu").append(`
+            <div class="item borderless">
+                <div id="participant-count" class="ui label">
+                    <i class="user icon"></i>0
+                </div>
+            </div>
+        `);
+        $participantCountIcon = $("#participant-count");
 
-    $navigationMessage = $("#navigation-message span");
-    $updates = $("#neutrino-more");
+        $("#left-menu").append(`
+            <div class="item no-left-padding borderless">
+                <div id="copy-session-btn" class="ui primary labeled icon button">
+                    <i class="copy icon"></i>Copy Link
+                </div>
+            </div>
+        `);
+        $copySessionBtn = $("#copy-session-btn");
+        $copySessionBtn.click(function (e) {
+            // navigator.clipboard.writeText(window.location.href);
+            $copySessionBtn.html(`
+                <i class=\"check icon\"></i>
+                Copied
+            `);
+            setTimeout(function() {
+                $copySessionBtn.html("<i class=\"copy icon\"></i>Copy Link");
+            }, 1000);
+        });
+    }
 
     $("body").keydown(function (e) {
         var keyCode = e.keyCode || e.which;
@@ -548,11 +582,6 @@ $(document).ready(function () {
             editorsUpdateFontSize(fontSize);
         }
     });
-
-    $("select.dropdown").dropdown();
-    $(".ui.dropdown").dropdown();
-    $(".ui.dropdown.site-links").dropdown({action: "hide", on: "hover"});
-    $(".ui.checkbox").checkbox();
 
     require(["vs/editor/editor.main", "monaco-vim", "monaco-emacs"], function (ignorable, MVim, MEmacs) {
         layout = new GoldenLayout(layoutConfig, $("#site-content"));

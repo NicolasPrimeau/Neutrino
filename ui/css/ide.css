@@ -41,11 +41,6 @@ body {
     height: 45px;
 }
 
-#navigation-message {
-    font-size: 1.2em;
-    white-space: nowrap;
-    overflow: hidden;
-}
 
 @keyframes slide {
     0% { transform: translateX(570px); }
@@ -56,23 +51,6 @@ body {
     100% { transform: translateX(-100%); }
 }
 
-.navigation-message-text {
-    white-space: nowrap;
-    -moz-animation: slide 60s linear infinite;
-    -webkit-animation: slide 60s linear infinite;
-    animation: slide 60s linear infinite;
-}
-
-.navigation-message-text:hover {
-    -moz-animation-play-state: paused;
-    -webkit-animation-play-state: paused;
-    animation-play-state: paused;
-}
-
-#navigation-message a {
-    color: #41a5f1;
-    font-weight: bold;
-}
 
 #site-icon {
     width: 30px;
@@ -125,13 +103,6 @@ body {
 
 #site-footer a:hover {
     color: #a0d2f8;
-}
-
-#donate-line {
-    float: left;
-    left: 0;
-    text-align: left;
-    width: fit-content;
 }
 
 #status-line {
@@ -190,4 +161,8 @@ body {
 
 input[type="text"] {
     width: 205px !important;
+}
+
+#copy-session-btn {
+    width: 130px;
 }

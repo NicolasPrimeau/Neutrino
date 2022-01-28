@@ -3,7 +3,7 @@
     {
       "name": "managed-layer",
       "resource_type": "lambda_layer",
-      "layer_version_arn": "arn:aws:lambda:us-east-2:357603364432:layer:neutrino-ws-prod-managed-layer:11"
+      "layer_version_arn": "arn:aws:lambda:us-east-2:357603364432:layer:neutrino-ws-prod-managed-layer:12"
     },
     {
       "name": "api_handler",
