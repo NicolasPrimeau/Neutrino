@@ -39,10 +39,12 @@ body {
     background: #1e1e1e;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     height: 45px;
+}
+
+#site-navigation.scrollable {
     position: sticky;
     top: 0;
 }
-
 
 @keyframes slide {
     0% { transform: translateX(570px); }
@@ -87,6 +89,9 @@ body {
     left: 0;
     text-align: center;
     width: 100%;
+}
+
+#site-footer.scrollable {
     position: sticky;
     bottom: 0;
 }
