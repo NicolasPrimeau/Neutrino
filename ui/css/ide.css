@@ -39,6 +39,8 @@ body {
     background: #1e1e1e;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     height: 45px;
+    position: sticky;
+    top: 0;
 }
 
 
@@ -85,6 +87,8 @@ body {
     left: 0;
     text-align: center;
     width: 100%;
+    position: sticky;
+    bottom: 0;
 }
 
 #status-line {

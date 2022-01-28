@@ -525,6 +525,7 @@ $(document).ready(function () {
     });
 
     $('#more').dropdown();
+    $(".ui.dropdown.site-links").dropdown({action: "hide", on: "hover"});
 
     if (sessionId != null) {
         $("#participants-count-holder").html(`
