@@ -545,7 +545,7 @@ $(document).ready(function () {
             `);
             $copySessionBtn = $("#copy-session-btn");
             $copySessionBtn.click(function (e) {
-                // navigator.clipboard.writeText(window.location.href);
+                navigator.clipboard.writeText(window.location.href);
                 $copySessionBtn.html(`
                     <i class=\"check icon\"></i>
                     Copied
